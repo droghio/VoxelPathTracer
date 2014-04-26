@@ -9,7 +9,7 @@ class EllipticalTracer:
     
     #Cursor Location
     class Cursor:
-        x = 0.0; y = 0.0; dir = 0; size = 1; nogo = 0;
+        x = 0.0; y = 0.0; dir = 0; size = 1; nogo = 3;
         def __init__(self, _x = 0.0, _y = 0.0, _dir = 0, _size = 1.0):
             self.x = _x; self.y = _y; self.dir = _dir; self.size = _size;
         #For dir: +y = 0, +x = 1, -y = 2, -x = 3
@@ -45,67 +45,81 @@ class EllipticalTracer:
 
 
     def whereToGo(self):
+        #We will select the side closet to the curve, indecies are the dir.
+        #forward = 0, right = 1, back = 2, left = 3
+        distancesToCurve = ["NULL", "NULL", "NULL", "NULL"];
+        directionHuman = ["Front", "Right", "Back", "Left"];
+        
         if (self.calculateXGivenY(self.cursor.y+self.cursor.size) != "NULL"):
             #Check forward direction.
             value = self.calculateXGivenY(self.cursor.y+self.cursor.size)
-            if (value < self.cursor.x + self.cursor.size and
-                value > self.cursor.x - self.cursor.size and self.cursor.nogo != 0):
-                nogo = 2
-                return "Front";
+            if (self.cursor.nogo != 0):
+                distancesToCurve[0] = abs(value - self.cursor.x);
 
         if (self.calculateXGivenY(self.cursor.y-self.cursor.size) != "NULL"):
             #Check backward direction.
             value = self.calculateXGivenY(self.cursor.y-self.cursor.size)
-            if (value < self.cursor.x + self.cursor.size and
-                value > self.cursor.x - self.cursor.size and self.cursor.nogo != 2):
-                nogo = 0
-                return "Back";
+            if (self.cursor.nogo != 2):
+                distancesToCurve[2] = abs(value - self.cursor.x);
 
         if (self.calculateYGivenX(self.cursor.x+self.cursor.size) != "NULL"):
             #Check right direction.
             value = self.calculateYGivenX(self.cursor.x+self.cursor.size)
-            if (value < self.cursor.y + self.cursor.size and
-                value > self.cursor.y - self.cursor.size and self.cursor.nogo != 1):
-                nogo = 3
-                return "Right";
+            if (self.cursor.nogo != 1):
+                distancesToCurve[1] = abs(value - self.cursor.y);
+                    
+        """if (self.calculateYGivenX(self.cursor.x-self.cursor.size) != "NULL"):
+            #Check left direction.
+            value = self.calculateYGivenX(self.cursor.x-self.cursor.size)
+            if (self.cursor.nogo != 3):
+                distancesToCurve[3] = abs(value - self.cursor.y);"""
 
+        minerror = -1; minindex = -3
+        for distanceIndex in range(len(distancesToCurve)):
+            if (distancesToCurve[distanceIndex] != "NULL"):
+                #print "x:", self.cursor.x, "dir:", directionHuman[distanceIndex], "error:", distancesToCurve[distanceIndex];
+                #print self.cursor.x, ",", directionHuman[distanceIndex], ",", distancesToCurve[distanceIndex];
+                if (distancesToCurve[distanceIndex] < minerror or minerror <= -1):
+                    minerror = distancesToCurve[distanceIndex];
+                    minindex = distanceIndex;
 
+        self.cursor.nogo = (minindex+2)%4
+        return directionHuman[minindex];
+                
 
 
     def __init__(self, _a = 1, _b = 1, _c = 1, x=1):
         self.a = _a; self.b = _b; self.c = _c;
-        self.cursor = self.Cursor(x, self.calculateYGivenX(x), 0, .1)
+        self.cursor = self.Cursor(x, self.calculateYGivenX(x), 0, .06)
 
 
 
 ellipse = EllipticalTracer(1, .5, 1, 0)
-print ellipse.calculateXGivenY(.5)
-print ellipse.calculateYGivenX(0)
-print ellipse.whereToGo();
 
-queue = []
-for point in range(141):
+queue = [(0,ellipse.calculateYGivenX(0)/ellipse.cursor.size,1)]
+drawscale = .01
+#Draw curve.
+for point in range(int(math.ceil(ellipse.calculateXGivenY(0)/drawscale))):
+    queue.append((point*drawscale, ellipse.calculateYGivenX(point*drawscale)))
 
-    queue.append((point/100.0, ellipse.calculateYGivenX(point/100.0)))
-    print queue[-1]
-
+#Voxelize.
+while (ellipse.cursor.x < ellipse.calculateXGivenY(0)):
     direction = ellipse.whereToGo()
-    print ellipse.cursor.x, direction
+    print ellipse.cursor.x, ellipse.cursor.y, direction, point*drawscale, ellipse.calculateYGivenX(point*drawscale), point
 
-    if (point % 1 == 0):
-        queue.append((ellipse.cursor.x*10, ellipse.cursor.y*10, 1))
-
-    #ellipse.cursor.x = queue[-1][0]/100.0
-    #ellipse.cursor.y = queue[-1][1]/100.0
-    
     if (direction == "Front"):
         ellipse.cursor.y += ellipse.cursor.size
-    
+
     elif (direction == "Right"):
         ellipse.cursor.x += ellipse.cursor.size
-    
+
     elif (direction == "Back"):
-        ellipse.cursor.y -= ellipse.cursor.size
+            ellipse.cursor.y -= ellipse.cursor.size
+
+    elif (direction == "Left"):
+        ellipse.cursor.x -= ellipse.cursor.size
+
+    queue.append((ellipse.cursor.x/ellipse.cursor.size, ellipse.cursor.y/ellipse.cursor.size, 1))
 
 
 x = Render()

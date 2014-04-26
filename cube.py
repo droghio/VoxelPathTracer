@@ -109,7 +109,7 @@ class Render:
 
     def display(self):
         
-        size = 10; #Universal size for grid spacing/voxel size.
+        size = 6; #Universal size for grid spacing/voxel size.
         
         glClear(GL_COLOR_BUFFER_BIT)
         glLoadIdentity()             # clear the matrix
@@ -148,7 +148,7 @@ class Render:
         #Place our cursor into the grid
         glTranslate(-size/2, -size/2, -size/2)
 
-        #For all our speical points (the cursor paths)
+        #For all our special points (the cursor paths)
         #change the color and trace its path with cubes.
         for point in secondaryqueue:
             self.drawCube(math.floor(point[0]), math.floor(point[1]), size)
