@@ -1,10 +1,15 @@
 #! /usr/bin/python
 
-#!/usr/bin/python
-
 # This is statement is required by the build system to query build info
 if __name__ == '__build__':
 	raise Exception
+
+"""
+        This code builds on a couple examples included in the PyOpenGL
+        Package, original licenses are shown below.
+"""
+
+
 
 '''
     
