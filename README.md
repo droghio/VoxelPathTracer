@@ -18,4 +18,7 @@ Theory:
   Instead of a classic Monte-Carlo or Ceill approximation I instead walk the curve.
   My program introduces a cursor that follows the curve, creating voxels as it moves.
   
-  By recording the cursor's location as it follows the curve a rough voxel trace if generated.
+  The cursor can only move in a direction perpendicular to one of its faces. This ensure
+  the trace is confined to a voxel grid.
+  
+  By recording the cursor's motion a rough voxel trace is generated.
